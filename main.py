@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import os
 
-# Configurări tabla
+
 tabla_x = 104
 tabla_y = 311
 latime_celula = 24
@@ -13,9 +13,8 @@ nr_randuri = 16
 nr_coloane = 30
 
 def identifica_celula(img_celula, templates_dir="templates"):
-    """Identifică tipul unei celule comparând cu template-uri"""
+
     if not os.path.exists(templates_dir):
-        print(f"[EROARE] Folderul {templates_dir} nu există!")
         return "necunoscut"
     
     max_score = -1
@@ -42,16 +41,13 @@ def identifica_celula(img_celula, templates_dir="templates"):
     return label_final if max_score > 0.85 else "necunoscut"
 
 def extract_cells():
-    """Extrage și salvează toate celulele din tabla de joc"""
     screenshot = pyautogui.screenshot()
     img = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
     
     tabla_logica = []
     
-    # Creează folderul dacă nu există
     os.makedirs("cells", exist_ok=True)
-    
-    print("[INFO] Extrag celulele...")
+
     
     for rand in range(nr_randuri):
         linie = []
@@ -70,11 +66,9 @@ def extract_cells():
         
         tabla_logica.append(linie)
     
-    print(f"[INFO] Am extras {nr_randuri}x{nr_coloane} celule în folderul 'celule/'")
     return tabla_logica
 
 def pune_flags_sigure(tabla_logica):
-    """Pune steaguri în celulele care sunt cu siguranță bombe"""
     for rand in range(len(tabla_logica)):
         for coloana in range(len(tabla_logica[0])):
             val = tabla_logica[rand][coloana]
@@ -85,7 +79,6 @@ def pune_flags_sigure(tabla_logica):
                 vecini_necunoscuti = []
                 nr_flags = 0
 
-                # sus
                 if rand > 0:
                     v = tabla_logica[rand - 1][coloana]
                     if v == "unknow":
@@ -93,7 +86,6 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # jos
                 if rand < len(tabla_logica) - 1:
                     v = tabla_logica[rand + 1][coloana]
                     if v == "unknow":
@@ -101,7 +93,6 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # stanga
                 if coloana > 0:
                     v = tabla_logica[rand][coloana - 1]
                     if v == "unknow":
@@ -117,7 +108,6 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # sus-stanga
                 if rand > 0 and coloana > 0:
                     v = tabla_logica[rand - 1][coloana - 1]
                     if v == "unknow":
@@ -125,7 +115,6 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # sus-dreapta
                 if rand > 0 and coloana < len(tabla_logica[0]) - 1:
                     v = tabla_logica[rand - 1][coloana + 1]
                     if v == "unknow":
@@ -133,7 +122,6 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # jos-stanga
                 if rand < len(tabla_logica) - 1 and coloana > 0:
                     v = tabla_logica[rand + 1][coloana - 1]
                     if v == "unknow":
@@ -141,7 +129,6 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # jos-dreapta
                 if rand < len(tabla_logica) - 1 and coloana < len(tabla_logica[0]) - 1:
                     v = tabla_logica[rand + 1][coloana + 1]
                     if v == "unknow":
@@ -149,19 +136,12 @@ def pune_flags_sigure(tabla_logica):
                     elif v == "flag":
                         nr_flags += 1
 
-                # Dacă numărul de necunoscute + flaguri existente == număr din celulă
                 if nr_flags + len(vecini_necunoscuti) == nr:
                     for y, x in vecini_necunoscuti:
                         # Click dreapta pe celula (y, x)
                         px = tabla_x + x * latime_celula + latime_celula // 2
                         py = tabla_y + y * inaltime_celula + inaltime_celula // 2
 
-                        # Debug vizual (opțional)
-                        screenshot = pyautogui.screenshot()
-                        img = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
-                        culoare = (0, 0, 255)
-                        cv2.circle(img, (px, py), radius=5, color=culoare, thickness=-1)
-                        cv2.imwrite("debug_flag.png", img)
 
                         pyautogui.rightClick(px, py)
                         print(f"[FLAG] Flag la ({y}, {x})")
@@ -171,18 +151,15 @@ def pune_flags_sigure(tabla_logica):
                         tabla_logica[y][x] = "flag"
 
 def afiseaza_matrice(tabla_logica):
-    """Afișează tabla ca o matrice frumoasă"""
     print("\n" + "="*60)
     print("TABLA MINESWEEPER")
     print("="*60)
     
-    # Header cu numerele coloanelor
     print("   ", end="")
     for col in range(nr_coloane):
         print(f"{col:>8}", end="")
     print()
     
-    # Fiecare rând
     for rand in range(nr_randuri):
         print(f"{rand:2}: ", end="")
         for coloana in range(nr_coloane):
